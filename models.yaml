@@ -1,0 +1,99 @@
+# Reference model matrix for VLM + LLM benchmarking on a single high-end GPU node.
+#
+# Designed for DGX-class hardware (A100/H100). Drop in your own entries — the harness
+# only requires (name, hf_repo, port, role); other fields are documentation hints.
+#
+# Default port allocation:
+#   8001-8003  VLM (vision tasks)
+#   9001-9003  LLM (text completion / chat)
+
+models:
+  # ═══════════════════ VLM ═══════════════════
+
+  - name: qwen3-vl-8b-instruct
+    hf_repo: Qwen/Qwen3-VL-8B-Instruct
+    quantization: null                 # 原生 BF16
+    port: 8001
+    vram_estimate_gb: 20
+    hardware_min: A100-40G
+    role: vlm_primary
+    dtype: bfloat16
+    notes: "🌟 VLM primary — Qwen3-VL flagship (https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct)"
+
+  - name: qwen2.5-vl-7b-fp16
+    hf_repo: Qwen/Qwen2.5-VL-7B-Instruct
+    quantization: null
+    port: 8002
+    vram_estimate_gb: 18
+    hardware_min: A100-40G
+    role: vlm_baseline
+    dtype: bfloat16
+    notes: "📍 VLM baseline (older but widely deployed)"
+
+  # ═══════════════════ LLM ═══════════════════
+  #
+  # 不降级到 8B/14B。DGX 主力用 30B MoE（激活 3B，速度媲美 8B）或 235B 旗舰。
+
+  - name: qwen3-30b-a3b-instruct-2507-fp8
+    hf_repo: Qwen/Qwen3-30B-A3B-Instruct-2507-FP8
+    quantization: fp8
+    port: 9001
+    vram_estimate_gb: 35
+    hardware_min: H100-80G
+    role: llm_primary
+    task_type: text_only
+    notes: "🌟 LLM 首选：30B MoE 官方 FP8，激活 3B 推理快，2507 最新版"
+
+  - name: qwen3-235b-a22b-instruct-2507-fp8
+    hf_repo: Qwen/Qwen3-235B-A22B-Instruct-2507-FP8
+    quantization: fp8
+    port: 9002
+    vram_estimate_gb: 240
+    hardware_min: 8xH100-80G
+    role: llm_ultra_flagship
+    task_type: text_only
+    notes: "🌟🌟🌟 LLM 旗舰：235B MoE（激活 22B）官方 FP8，需 8×H100"
+
+
+# ══════════════════════════════════════════════════════
+# Benchmark 矩阵（每个模型跑 6 维度）
+# ══════════════════════════════════════════════════════
+
+benchmarks:
+  accuracy:
+    description: "Golden set 9 张图，分类+实体+事实准确性（仅 VLM）"
+    skip_for_task_type: [text_only]
+    golden_file: golden/expectations.json
+    thresholds:
+      category_precision_min: 0.80
+      entity_recall_min: 0.60
+
+  ttft:
+    description: "首 token 延迟（流式）"
+    samples: 5
+    thresholds:
+      p95_ttft_ms_max: 2000
+
+  throughput:
+    description: "Token/秒吞吐（单并发）"
+    duration_s: 60
+    thresholds:
+      tps_min: 30
+
+  concurrency:
+    description: "并发稳定性（1/5/10/30/50）"
+    concurrencies: [1, 5, 10, 30, 50]
+    duration_s: 60
+    thresholds:
+      success_rate_min: 0.95
+
+  stability:
+    description: "30 分钟连续跑，看延迟漂移"
+    duration_s: 1800
+    thresholds:
+      latency_drift_ratio_max: 1.30
+
+  token_budget:
+    description: "input/output token 预算 + 截断率"
+    thresholds:
+      truncation_rate_max: 0.10

@@ -1,0 +1,124 @@
+{
+  "_description": "VLM benchmark golden set (synthetic demo). Replace with your own evidence to evaluate against your domain.",
+  "_version": "demo-1.0",
+  "_case": "Synthetic chat screenshots — based on real-world VLM evaluation methodology, but all PII redacted.",
+  "_methodology": [
+    "Amount precision (e.g. ¥1200.00; digit-shift like ¥120 / ¥12000 → FAIL)",
+    "Named entity recall (people / orgs / products mentioned)",
+    "Scene classification (communication / financial / contract / form)",
+    "Key-fact extraction (transfer / reconciliation / agreement diff)",
+    "Token-budget tracking (input + output) for cost monitoring",
+    "TTFT + total latency for throughput baseline"
+  ],
+  "_token_budget": {
+    "input_tokens_normal_range":  [600, 2800],
+    "output_tokens_normal_range": [100, 900],
+    "fail_if_output_truncated":   "eval_count == num_predict suggests possible truncation (FAIL warning)",
+    "fail_if_output_too_short":   "output_tokens < 30 suggests model refusal / silent failure"
+  },
+  "_fixtures_note": "Place your own JPEG/PNG screenshots into fixtures/ matching the `image` keys below. The repo ships with no fixture data (privacy). See fixtures/README.md for guidance.",
+  "cases": [
+    {
+      "id": "chat_01_transfer_1200",
+      "image": "0.jpg",
+      "description": "Chat screenshot with a payment receipt of ¥1200 (reconciliation case)",
+      "expected_category": "communication",
+      "expected_subcategory": "chat_with_transfer",
+      "must_identify_entities": ["Alice", "¥1200"],
+      "must_identify_facts":    ["reconciliation", "balance_diff_1200", "received"],
+      "must_not_say":           ["120", "12", "1200000"],
+      "expected_difficulty":    "medium",
+      "token_budget": {"input": [700, 1800], "output": [80, 500]}
+    },
+    {
+      "id": "chat_02",
+      "image": "1.jpg",
+      "description": "Chat screenshot",
+      "expected_category": "communication",
+      "must_identify_entities": ["Alice"],
+      "must_identify_facts":    [],
+      "token_budget": {"input": [600, 1800], "output": [60, 400]}
+    },
+    {
+      "id": "chat_03",
+      "image": "2.jpg",
+      "description": "Chat screenshot",
+      "expected_category": "communication",
+      "must_identify_entities": [],
+      "must_identify_facts":    [],
+      "token_budget": {"input": [600, 1800], "output": [60, 400]}
+    },
+    {
+      "id": "chat_04",
+      "image": "3.jpg",
+      "description": "Chat screenshot",
+      "expected_category": "communication",
+      "must_identify_entities": [],
+      "must_identify_facts":    [],
+      "token_budget": {"input": [600, 1800], "output": [60, 400]}
+    },
+    {
+      "id": "chat_05_with_transfer",
+      "image": "4.jpg",
+      "description": "Chat with embedded transfer card",
+      "expected_category": "communication",
+      "must_identify_entities": [],
+      "must_identify_facts":    [],
+      "token_budget": {"input": [600, 1800], "output": [60, 500]}
+    },
+    {
+      "id": "chat_06_with_transfer",
+      "image": "5.jpg",
+      "description": "Chat with embedded transfer card",
+      "expected_category": "communication",
+      "must_identify_entities": [],
+      "must_identify_facts":    [],
+      "token_budget": {"input": [600, 1800], "output": [60, 500]}
+    },
+    {
+      "id": "chat_07_dense",
+      "image": "10.jpg",
+      "description": "Multi-party / information-dense chat",
+      "expected_category": "communication",
+      "must_identify_entities": [],
+      "must_identify_facts":    [],
+      "expected_difficulty":    "hard",
+      "token_budget": {"input": [900, 2500], "output": [100, 700]}
+    },
+    {
+      "id": "chat_08",
+      "image": "11.jpg",
+      "description": "Chat screenshot",
+      "expected_category": "communication",
+      "must_identify_entities": [],
+      "must_identify_facts":    [],
+      "token_budget": {"input": [600, 1800], "output": [60, 400]}
+    },
+    {
+      "id": "chat_09",
+      "image": "12.jpg",
+      "description": "Chat screenshot",
+      "expected_category": "communication",
+      "must_identify_entities": [],
+      "must_identify_facts":    [],
+      "token_budget": {"input": [600, 1800], "output": [60, 400]}
+    }
+  ],
+  "acceptance_criteria": {
+    "category_precision_min":            0.80,
+    "entity_recall_min":                 0.60,
+    "fact_recall_min":                   0.50,
+    "must_not_say_violation_max":        0,
+    "output_token_truncation_rate_max":  0.10,
+    "p95_latency_ms_max_per_image":      20000,
+    "error_rate_max":                    0.05
+  },
+  "regression_thresholds": {
+    "_description": "Candidate model regression criteria when comparing against baseline",
+    "category_precision_drop_max": 0.05,
+    "entity_recall_drop_max":      0.10,
+    "fact_recall_drop_max":        0.10,
+    "p95_latency_ratio_max":       1.50,
+    "must_not_say_delta_max":      0
+  }
+}

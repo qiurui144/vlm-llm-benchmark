@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.Python
+.venv/
+venv/
+env/
+
+# Build / dist
+build/
+dist/
+*.tar.gz
+*.zip
+
+# ML artifacts (large; reproduce with prepare_offline.sh)
+models/
+wheels/
+hf_cache/
+output/
+deps/*.deb
+
+# Fixtures often contain PII — never commit real images
+fixtures/*.jpg
+fixtures/*.jpeg
+fixtures/*.png
+fixtures/*.gif
+fixtures/*.webp
+fixtures/*.pdf
+fixtures/*.mp4
+fixtures/*.wav
+# but DO commit fixtures/README.md and any synthetic demo data
+!fixtures/README.md
+
+# Test / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+
+# Editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Local secrets — never commit
+.env
+.env.local
+*.pem
+*.key
