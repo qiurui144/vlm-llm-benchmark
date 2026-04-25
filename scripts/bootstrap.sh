@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
-# DGX 首次部署 bootstrap
+# First-time bootstrap on a GPU host (e.g. DGX).
 #
-# 作用: 在 DGX 上解压 tar.gz 后一键完成:
-#   1. 安装 + 加入 ZeroTier 网络
-#   2. 离线装 vLLM wheels
-#   3. 预链接模型权重到 HF_HOME cache
-#   4. 启动第一个 VLM 做冒烟测试
+# Does, in order:
+#   1. (Optional) ZeroTier install + network join
+#   2. Create venv + activate
+#   3. Install vLLM offline from ./wheels (or fall back to online install)
+#   4. Symlink ./models/* into the HuggingFace cache layout
 #
-# 前置: 已把 qwen3vl_eval/ 解压到 DGX，且本机有 conda 或 venv Python 3.10+
+# Prerequisites: vlm-llm-benchmark/ unpacked at $PKG_ROOT, Python 3.10+ available.
 #
-# 使用:
-#   cd qwen3vl_eval
+# Usage:
+#   cd vlm-llm-benchmark
 #   sudo bash scripts/bootstrap.sh
 
 set -euo pipefail

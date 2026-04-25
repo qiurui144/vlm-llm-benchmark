@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
-# 预备机（有网）打包脚本
+# Run on an internet-connected staging host to pre-fetch:
+#   1. vLLM and its dependencies as wheels → wheels/
+#   2. Reference Qwen model weights → models/
 #
-# 作用: 在一台能访问 HuggingFace + PyPI 的机器上，提前下载:
-#   1. vLLM 及其依赖的 wheels → wheels/
-#   2. Qwen3-VL + Qwen3 LLM 模型权重 → models/
-# 然后把整个 qwen3vl_eval/ 打成 tar.gz 丢给 DGX
+# After this, tar up the whole vlm-llm-benchmark/ directory and ship it to your
+# air-gapped GPU host.
 #
-# 注意: 235B 模型权重约 240GB，如果硬盘放不下，可以跳过（MODEL_SET 控制）
+# Note: the 235B-FP8 model is ~240 GB; skip it via MODEL_SET unless you have disk.
 #
-# 使用:
-#   MODEL_SET=minimal bash scripts/prepare_offline.sh   # 只下 VLM 首选（~16GB）
-#   MODEL_SET=standard bash scripts/prepare_offline.sh  # VLM 双模 + LLM 30B（~80GB）
-#   MODEL_SET=full bash scripts/prepare_offline.sh      # 全部四模型（~320GB）
+# Usage:
+#   MODEL_SET=minimal  bash scripts/prepare_offline.sh   # VLM primary only  (~16 GB)
+#   MODEL_SET=standard bash scripts/prepare_offline.sh   # VLM ×2 + LLM-30B  (~80 GB)
+#   MODEL_SET=full     bash scripts/prepare_offline.sh   # all 4 models      (~320 GB)
 
 set -euo pipefail
 
@@ -102,5 +102,5 @@ echo "====================================="
 echo " 完成"
 echo "====================================="
 echo "总体积: $(du -sh "$PKG_ROOT" | awk '{print $1}')"
-echo "打包命令: "
-echo "  cd $(dirname "$PKG_ROOT") && tar czf qwen3vl_eval.tar.gz qwen3vl_eval/"
+echo "Bundle command:"
+echo "  cd $(dirname "$PKG_ROOT") && tar czf vlm-llm-benchmark.tar.gz $(basename "$PKG_ROOT")/"
